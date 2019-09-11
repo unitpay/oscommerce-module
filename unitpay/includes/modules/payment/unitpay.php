@@ -59,10 +59,19 @@ class unitpay
         global $insert_id, $cart, $order;
 
         $public_key = MODULE_PAYMENT_UNITPAY_PUBLIC_KEY;
+        $secret_key = MODULE_PAYMENT_UNITPAY_SECRET_KEY;
         $sum = $order->info['total'];
+        $currency = $order->info['currency'];
         $account = $insert_id;
-        $desc = 'Заказ #' . $insert_id;
-        $payment_url = 'https://unitpay.ru/pay/' . $public_key . '?' . 'sum=' . $sum . '&account=' . $account . '&desc=' . $desc;
+        $desc = 'Заказ №' . $insert_id;
+        $signature = hash('sha256', join('{up}', array(
+            $account,
+            $currency,
+            $desc,
+            $sum,
+            $secret_key
+        )));
+        $payment_url = 'https://unitpay.loc/pay/' . $public_key . '?' . 'sum=' . $sum . '&account=' . $account . '&signature=' . $signature . '&currency=' . $currency . '&desc=' . $desc;
 
         $cart->reset(true);
         tep_session_unregister('sendto');
