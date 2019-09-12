@@ -71,7 +71,7 @@ class unitpay
             $sum,
             $secret_key
         )));
-        $payment_url = 'https://unitpay.loc/pay/' . $public_key . '?' . 'sum=' . $sum . '&account=' . $account . '&signature=' . $signature . '&currency=' . $currency . '&desc=' . $desc;
+        $payment_url = 'https://unitpay.ru/pay/' . $public_key . '?' . 'sum=' . $sum . '&account=' . $account . '&signature=' . $signature . '&currency=' . $currency . '&desc=' . $desc;
 
         $cart->reset(true);
         tep_session_unregister('sendto');
