@@ -58,6 +58,7 @@ class unitpay
     {
         global $insert_id, $cart, $order;
 
+        $domain = MODULE_PAYMENT_UNITPAY_DOMAIN;
         $public_key = MODULE_PAYMENT_UNITPAY_PUBLIC_KEY;
         $secret_key = MODULE_PAYMENT_UNITPAY_SECRET_KEY;
         $sum = $order->info['total'];
@@ -71,7 +72,7 @@ class unitpay
             $sum,
             $secret_key
         )));
-        $payment_url = 'https://unitpay.ru/pay/' . $public_key . '?' . 'sum=' . $sum . '&account=' . $account . '&signature=' . $signature . '&currency=' . $currency . '&desc=' . $desc;
+        $payment_url = 'https://' . $domain . '/pay/' . $public_key . '?' . 'sum=' . $sum . '&account=' . $account . '&signature=' . $signature . '&currency=' . $currency . '&desc=' . $desc;
 
         $cart->reset(true);
         tep_session_unregister('sendto');
@@ -103,6 +104,14 @@ class unitpay
         $error_status_id = $this->createOrderStatus("Error[Unitpay]");
 
         //config params
+        tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values (
+            '".MODULE_PAYMENT_UNITPAY_DOMAIN_TITLE."', 
+            'MODULE_PAYMENT_UNITPAY_DOMAIN', 
+            '', 
+            '', 
+            '6', '0', now())"
+        );
+
         tep_db_query("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values (
             '".MODULE_PAYMENT_UNITPAY_PUBLIC_KEY_TITLE."', 
             'MODULE_PAYMENT_UNITPAY_PUBLIC_KEY', 
@@ -159,6 +168,7 @@ class unitpay
     function keys()
     {
         return array(
+            'MODULE_PAYMENT_UNITPAY_DOMAIN',
             'MODULE_PAYMENT_UNITPAY_PUBLIC_KEY',
             'MODULE_PAYMENT_UNITPAY_SECRET_KEY',
             'MODULE_PAYMENT_UNITPAY_SORT_ORDER',
