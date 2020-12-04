@@ -58,7 +58,7 @@ function check( $params )
         $total_query = tep_db_query("select value from " . TABLE_ORDERS_TOTAL . " where orders_id = '" . $order_id . "' and class = 'ot_total' limit 1");
         $total = tep_db_fetch_array($total_query);
 
-        if ((float)$total['value'] != (float)$params['orderSum']) {
+        if ((float) number_format($total['value'], 2, '.', '') != (float) number_format($params['orderSum'], 2, '.', '')) {
             $result = array('error' =>
                 array('message' => 'не совпадает сумма заказа')
             );
@@ -90,7 +90,7 @@ function pay( $params )
         $total_query = tep_db_query("select value from " . TABLE_ORDERS_TOTAL . " where orders_id = '" . $order_id . "' and class = 'ot_total' limit 1");
         $total = tep_db_fetch_array($total_query);
 
-        if ((float)$total['value'] != (float)$params['orderSum']) {
+        if ((float) number_format($total['value'], 2, '.', '') != (float) number_format($params['orderSum'], 2, '.', '')) {
             $result = array('error' =>
                 array('message' => 'не совпадает сумма заказа')
             );
