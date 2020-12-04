@@ -1,4 +1,5 @@
 <?php
+error_reporting(E_ERROR | E_PARSE);
 
 class unitpay
 {
@@ -7,7 +8,11 @@ class unitpay
     // class constructor
     function unitpay()
     {
+
         //global $order;
+
+        $this->signature = 'unitpay';
+        $this->api_version = '112';
 
         $this->code = 'unitpay';
         $this->title = MODULE_PAYMENT_UNITPAY_TEXT_TITLE;
@@ -61,7 +66,8 @@ class unitpay
         $domain = MODULE_PAYMENT_UNITPAY_DOMAIN;
         $public_key = MODULE_PAYMENT_UNITPAY_PUBLIC_KEY;
         $secret_key = MODULE_PAYMENT_UNITPAY_SECRET_KEY;
-        $sum = $order->info['total'];
+        $sum = number_format($order->info['total'], 2, '.', '');
+
         $currency = $order->info['currency'];
         $account = $insert_id;
         $desc = 'Заказ №' . $insert_id;
@@ -72,7 +78,12 @@ class unitpay
             $sum,
             $secret_key
         )));
-        $payment_url = 'https://' . $domain . '/pay/' . $public_key . '?' . 'sum=' . $sum . '&account=' . $account . '&signature=' . $signature . '&currency=' . $currency . '&desc=' . $desc;
+
+        $cashItems = $this->cashItems($order, $currency);
+        $email = $order->customer["email_address"];
+        $phone = $order->customer["telephone"];
+
+        $payment_url = 'https://' . $domain . '/pay/' . $public_key . '?' . 'sum=' . $sum . '&account=' . $account . '&signature=' . $signature . '&currency=' . $currency . '&desc=' . $desc . '&customerEmail=' . $email .'&customerPhone=' . $phone . '&cashItems=' .$cashItems;
 
         $cart->reset(true);
         tep_session_unregister('sendto');
@@ -81,6 +92,50 @@ class unitpay
         tep_session_unregister('payment');
         tep_session_unregister('comments');
         tep_redirect($payment_url);
+    }
+
+    function cashItems($order, $currency) {
+        $items = array_map(function ($item) use($currency) {
+            return array(
+                'name' => $item["name"],
+                'count' => $item["qty"],
+                'price' => $item["price"],
+                'currency' => $currency,
+                'type' => 'commodity',
+                'nds' => $this->taxRates($item['tax']),
+            );
+        }, $order->products);
+
+        if($order->info['shipping_cost'] > 0) {
+            $items[] = array(
+                'name' => "Услуги доставки",
+                'count' => 1,
+                'price' => $order->info['shipping_cost'],
+                'currency' => $currency,
+                'type' => 'service',
+                //'nds' => $this->taxRates($order->info['tax']),
+            );
+        }
+
+        return base64_encode(json_encode($items));
+    }
+
+    function taxRates($rate){
+        switch (intval($rate)){
+            case 10:
+                $vat = 'vat10';
+                break;
+            case 20:
+                $vat = 'vat20';
+                break;
+            case 0:
+                $vat = 'none';
+                break;
+            default:
+                $vat = 'none';
+        }
+
+        return $vat;
     }
 
     function output_error()
@@ -161,7 +216,7 @@ class unitpay
     function remove()
     {
         tep_db_query("delete from " . TABLE_CONFIGURATION .
-            " where configuration_key in ('" . implode("', '", $this->keys()) . "')");
+                " where configuration_key in ('" . implode("', '", $this->keys()) . "')");
 
     }
 
